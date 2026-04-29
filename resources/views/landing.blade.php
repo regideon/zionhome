@@ -40,8 +40,8 @@
     <main class="pt-16">
 
         {{-- Hero Section --}}
-        <section class="relative px-6 py-12 flex flex-col items-center text-center bg-gradient-to-b from-white to-surface-container-low">
-            <div class="max-w-md mx-auto">
+        <section class="relative px-6 py-12 bg-gradient-to-b from-white to-surface-container-low">
+            <div class="max-w-md mx-auto w-full text-center">
                 <span class="inline-block px-3 py-1 mb-4 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-bold uppercase tracking-widest">
                     Cainta Greenland Smart Subdivision
                 </span>
@@ -54,11 +54,12 @@
                 <div class="relative mt-8 group">
                     <div class="absolute inset-0 bg-primary/10 rounded-[3rem] blur-2xl group-hover:bg-primary/20 transition-all"></div>
                     <img alt="ZionHome App Digital ID"
-                         class="relative z-10 w-full max-w-[280px] mx-auto drop-shadow-2xl rounded-[2.5rem] border-[8px] border-on-background"
-                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYV6DqLSXuL5hIpUl8oxjWHnfkrDLI-F3IFTgreMbxvPuSyOu9D2FDs48M52oCkXwMXk6jWrRjRS1-0hxUKhdP-tpP6lpwzfTbWR23E7mHZPDlXGEPFAGrohxfEYoR66lcRfngiTqrCgBA5ijqSqHIIY0XmUtSjccp5tfHCikL8MqfBH9e46R8lppjcqp2vqN6SBARxulECjV23MgSaqp7Tm0ES3DBhxkeVRTIO8fdJweq-NDOfRLTL4GXlSPJRYLb9GKUsvGATS0D"/>
+                        class="relative z-10 w-full max-w-[280px] mx-auto drop-shadow-2xl rounded-[2.5rem] border-[8px] border-on-background"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYV6DqLSXuL5hIpUl8oxjWHnfkrDLI-F3IFTgreMbxvPuSyOu9D2FDs48M52oCkXwMXk6jWrRjRS1-0hxUKhdP-tpP6lpwzfTbWR23E7mHZPDlXGEPFAGrohxfEYoR66lcRfngiTqrCgBA5ijqSqHIIY0XmUtSjccp5tfHCikL8MqfBH9e46R8lppjcqp2vqN6SBARxulECjV23MgSaqp7Tm0ES3DBhxkeVRTIO8fdJweq-NDOfRLTL4GXlSPJRYLb9GKUsvGATS0D"/>
                 </div>
             </div>
         </section>
+
 
         {{-- Features Bento Section --}}
         <section class="px-6 py-16 bg-white">
