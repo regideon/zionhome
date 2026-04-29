@@ -1,12 +1,6 @@
 <div class="space-y-6 pb-4">
 
-    {{-- Flash success --}}
-    @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
-            <span class="material-symbols-outlined text-green-600 !text-lg">check_circle</span>
-            {{ session('success') }}
-        </div>
-    @endif
+    
 
     {{-- Hero --}}
     <section>
@@ -33,6 +27,15 @@
             </div>
         </div>
     </section>
+    @endif
+
+    
+    {{-- Flash success --}}
+    @if(session('success'))
+        <div class="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-green-600 !text-lg">check_circle</span>
+            {{ session('success') }}
+        </div>
     @endif
 
     {{-- Recent Requests --}}
@@ -69,10 +72,10 @@
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-bold text-on-surface leading-tight">{{ $fb->type?->name ?? 'Concern' }}</h4>
-                                    <p class="text-[11px] text-on-surface-variant">{{ $fb->reference_no }}</p>
+                                    <p class="text-[12px] text-on-surface-variant">{{ $fb->reference_no }}</p>
                                 </div>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                            <span class="px-3 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider
                                 {{ $isResolved ? 'bg-green-100 text-green-700' : ($isProgress ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-500') }}">
                                 {{ $statusName }}
                             </span>
