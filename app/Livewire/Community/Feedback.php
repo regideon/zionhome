@@ -110,9 +110,9 @@ EOT;
                 return;
             }
 
-            $this->selectedTypeId     = isset($data['feedback_type_id'])     ? (int) $data['feedback_type_id']     : $this->selectedTypeId;
-            $this->selectedPriorityId = isset($data['feedback_priority_id'])  ? (int) $data['feedback_priority_id'] : null;
-            $this->selectedCategoryId = isset($data['feedback_category_id'])  ? (int) $data['feedback_category_id'] : null;
+            $this->selectedTypeId     = isset($data['feedback_type_id'])    ? (int) $data['feedback_type_id']    : $this->selectedTypeId;
+            $this->selectedPriorityId = isset($data['feedback_priority_id']) ? (int) $data['feedback_priority_id'] : null;
+            $this->selectedCategoryId = isset($data['feedback_category_id']) ? (int) $data['feedback_category_id'] : null;
 
             $this->aiResult = [
                 'feedback_type_id'      => $data['feedback_type_id'] ?? null,
@@ -126,8 +126,8 @@ EOT;
                 'suggested_action'      => $data['suggested_action'] ?? null,
                 'raw_response'          => $data,
             ];
-        } catch (\Throwable) {
-            // AI is supplementary — fail silently
+        } catch (\Throwable $e) {
+            logger()->error('AI classification failed: ' . $e->getMessage());
         }
     }
 
@@ -139,15 +139,34 @@ EOT;
             'photo'          => 'nullable|image|max:5120',
         ]);
 
+        $user    = auth()->user();
+        $profile = $user->homeownerProfile;
+
+        $property = null;
+        if ($profile) {
+            $ownership = $profile->propertyOwnerships()
+                ->where('is_current', true)
+                ->with('property')
+                ->first();
+            $property = $ownership?->property;
+        }
+
         $defaultStatus = FeedbackStatus::where('name', 'Submitted')->first()
             ?? FeedbackStatus::first();
 
         $feedback = FeedbackModel::create([
-            'user_id'              => auth()->id(),
+            'user_id'              => $user->id,
+            'homeowner_profile_id' => $profile?->id,
+            'property_id'          => $property?->id,
+            'subdivision_phase_id' => $property?->subdivision_phase_id,
+            'street_id'            => $property?->street_id,
+            'block_no'             => $property?->block_no,
+            'lot_no'               => $property?->lot_no,
             'feedback_type_id'     => $this->selectedTypeId,
             'feedback_category_id' => $this->selectedCategoryId,
             'feedback_priority_id' => $this->selectedPriorityId,
             'feedback_status_id'   => $defaultStatus?->id,
+            'is_emergency'         => (bool) ($this->aiResult['is_high_risk'] ?? false),
             'message'              => $this->description,
             'submitted_at'         => now(),
             'reference_no'         => ModuleReference::generate('feedback'),
@@ -182,9 +201,9 @@ EOT;
     public function render(): \Illuminate\View\View
     {
         return view('livewire.community.feedback', [
-            'feedbackTypes'   => FeedbackType::where('is_active', true)->get(),
+            'feedbackTypes'      => FeedbackType::where('is_active', true)->get(),
             'feedbackPriorities' => FeedbackPriority::orderBy('sort_order')->get(),
-            'recentFeedbacks' => FeedbackModel::with(['type', 'status'])
+            'recentFeedbacks'    => FeedbackModel::with(['type', 'status'])
                 ->where('user_id', auth()->id())
                 ->latest('submitted_at')
                 ->limit(3)
