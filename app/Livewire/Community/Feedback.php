@@ -3,28 +3,43 @@
 namespace App\Livewire\Community;
 
 use App\Models\Feedback as FeedbackModel;
+use App\Models\FeedbackAiLog;
+use App\Models\FeedbackCategory;
+use App\Models\FeedbackPriority;
 use App\Models\FeedbackStatus;
 use App\Models\FeedbackType;
 use App\Support\ModuleReference;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use OpenAI\Laravel\Facades\OpenAI;
 
 #[Layout('layouts.community')]
 class Feedback extends Component
 {
     use WithFileUploads;
 
-    public ?int $selectedTypeId = null;
-    public string $description = '';
-    public $photo = null;
-    public bool $showForm = false;
+    public ?int $selectedTypeId     = null;
+    public ?int $selectedPriorityId = null;
+    public ?int $selectedCategoryId = null;
+    public string $description      = '';
+    public $photo                   = null;
+    public bool $showForm           = false;
+    public ?array $aiResult         = null;
 
     public function mount(): void
     {
-        $this->selectedTypeId = FeedbackType::where('id', 1)->value('id');
+        $this->selectedTypeId = FeedbackType::where('is_active', true)->value('id');
     }
 
+    public function updatedDescription(): void
+    {
+        if (strlen(trim($this->description)) < 15) {
+            return;
+        }
+
+        $this->classifyWithAI();
+    }
 
     public function selectType(int $typeId): void
     {
@@ -34,7 +49,86 @@ class Feedback extends Component
     public function toggleForm(): void
     {
         $this->showForm = ! $this->showForm;
-        $this->reset(['selectedTypeId', 'description', 'photo']);
+        $this->reset(['selectedTypeId', 'selectedPriorityId', 'selectedCategoryId', 'description', 'photo', 'aiResult']);
+        $this->selectedTypeId = FeedbackType::where('is_active', true)->value('id');
+    }
+
+    public function classifyWithAI(): void
+    {
+        $types      = FeedbackType::where('is_active', true)->pluck('name', 'id');
+        $priorities = FeedbackPriority::orderBy('sort_order')->pluck('name', 'id');
+        $categories = FeedbackCategory::where('is_active', true)->pluck('name', 'id');
+
+        $typeList     = $types->map(fn($n, $i) => "{$i}: {$n}")->implode(', ');
+        $priorityList = $priorities->map(fn($n, $i) => "{$i}: {$n}")->implode(', ');
+        $categoryList = $categories->map(fn($n, $i) => "{$i}: {$n}")->implode(', ');
+
+        $prompt = <<<EOT
+You are an AI assistant for a Philippine subdivision HOA (Homeowners Association) management system.
+Analyze the following resident feedback, which may be in Filipino/Tagalog, English, or mixed (Taglish).
+Respond ONLY with a valid JSON object — no markdown, no explanation.
+
+Feedback: "{$this->description}"
+
+Available feedback_type_id options: {$typeList}
+Available feedback_priority_id options: {$priorityList}
+Available feedback_category_id options: {$categoryList}
+
+Rules:
+- "May magnanakaw", "may nakalusot", "gate security", fire, flood, medical emergency → priority=Emergency (id=1)
+- Maintenance, broken streetlights, garbage → priority=High or Medium
+- Suggestions, appreciations → priority=Low
+- Match language context carefully
+
+Return exactly this JSON structure:
+{
+  "feedback_type_id": <integer>,
+  "feedback_priority_id": <integer>,
+  "feedback_category_id": <integer>,
+  "detected_sentiment": "<positive|negative|neutral|urgent>",
+  "is_high_risk": <true|false>,
+  "summary": "<one-sentence English summary>",
+  "suggested_action": "<brief action for HOA staff in English>"
+}
+EOT;
+
+        try {
+            $response = OpenAI::chat()->create([
+                'model'       => env('OPENAI_MODEL', 'gpt-4o-mini'),
+                'messages'    => [
+                    ['role' => 'system', 'content' => 'You are an HOA feedback classifier. Respond only with valid JSON.'],
+                    ['role' => 'user',   'content' => $prompt],
+                ],
+                'temperature' => 0.1,
+                'max_tokens'  => 300,
+            ]);
+
+            $raw  = trim($response->choices[0]->message->content);
+            $data = json_decode($raw, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE || ! is_array($data)) {
+                return;
+            }
+
+            $this->selectedTypeId     = isset($data['feedback_type_id'])     ? (int) $data['feedback_type_id']     : $this->selectedTypeId;
+            $this->selectedPriorityId = isset($data['feedback_priority_id'])  ? (int) $data['feedback_priority_id'] : null;
+            $this->selectedCategoryId = isset($data['feedback_category_id'])  ? (int) $data['feedback_category_id'] : null;
+
+            $this->aiResult = [
+                'feedback_type_id'      => $data['feedback_type_id'] ?? null,
+                'feedback_priority_id'  => $data['feedback_priority_id'] ?? null,
+                'feedback_category_id'  => $data['feedback_category_id'] ?? null,
+                'detected_sentiment'    => $data['detected_sentiment'] ?? null,
+                'detected_priority'     => $priorities[(int) ($data['feedback_priority_id'] ?? 0)] ?? null,
+                'detected_category'     => $categories[(int) ($data['feedback_category_id'] ?? 0)] ?? null,
+                'is_high_risk'          => (bool) ($data['is_high_risk'] ?? false),
+                'summary'               => $data['summary'] ?? null,
+                'suggested_action'      => $data['suggested_action'] ?? null,
+                'raw_response'          => $data,
+            ];
+        } catch (\Throwable) {
+            // AI is supplementary — fail silently
+        }
     }
 
     public function submit(): void
@@ -49,12 +143,14 @@ class Feedback extends Component
             ?? FeedbackStatus::first();
 
         $feedback = FeedbackModel::create([
-            'user_id'            => auth()->id(),
-            'feedback_type_id'   => $this->selectedTypeId,
-            'feedback_status_id' => $defaultStatus?->id,
-            'message'            => $this->description,
-            'submitted_at'       => now(),
-            'reference_no'       => ModuleReference::generate('feedback'),
+            'user_id'              => auth()->id(),
+            'feedback_type_id'     => $this->selectedTypeId,
+            'feedback_category_id' => $this->selectedCategoryId,
+            'feedback_priority_id' => $this->selectedPriorityId,
+            'feedback_status_id'   => $defaultStatus?->id,
+            'message'              => $this->description,
+            'submitted_at'         => now(),
+            'reference_no'         => ModuleReference::generate('feedback'),
         ]);
 
         if ($this->photo) {
@@ -66,7 +162,20 @@ class Feedback extends Component
             ]);
         }
 
-        $this->reset(['selectedTypeId', 'description', 'photo', 'showForm']);
+        if ($this->aiResult) {
+            FeedbackAiLog::create([
+                'feedback_id'        => $feedback->id,
+                'detected_category'  => $this->aiResult['detected_category'] ?? null,
+                'detected_sentiment' => $this->aiResult['detected_sentiment'] ?? null,
+                'detected_priority'  => $this->aiResult['detected_priority'] ?? null,
+                'is_high_risk'       => $this->aiResult['is_high_risk'] ?? false,
+                'summary'            => $this->aiResult['summary'] ?? null,
+                'suggested_action'   => $this->aiResult['suggested_action'] ?? null,
+                'raw_response'       => $this->aiResult['raw_response'] ?? null,
+            ]);
+        }
+
+        $this->reset(['selectedTypeId', 'selectedPriorityId', 'selectedCategoryId', 'description', 'photo', 'showForm', 'aiResult']);
         session()->flash('success', 'Your concern has been submitted successfully!');
     }
 
@@ -74,6 +183,7 @@ class Feedback extends Component
     {
         return view('livewire.community.feedback', [
             'feedbackTypes'   => FeedbackType::where('is_active', true)->get(),
+            'feedbackPriorities' => FeedbackPriority::orderBy('sort_order')->get(),
             'recentFeedbacks' => FeedbackModel::with(['type', 'status'])
                 ->where('user_id', auth()->id())
                 ->latest('submitted_at')

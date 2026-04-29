@@ -128,22 +128,87 @@
                             </button>
                         @endforeach
                     </div>
+
+                    {{-- Priority indicator (auto-set by AI, shown as read-only badge) --}}
+                    @if($selectedPriorityId && $feedbackPriorities->isNotEmpty())
+                        @php $detectedPriority = $feedbackPriorities->firstWhere('id', $selectedPriorityId); @endphp
+                        @if($detectedPriority)
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-[12px] text-on-surface-variant">Priority:</span>
+                                <span class="text-[12px] font-bold px-3 py-0.5 rounded-full
+                                    {{ $detectedPriority->name === 'Emergency' ? 'bg-red-100 text-red-700' :
+                                    ($detectedPriority->name === 'High' ? 'bg-orange-100 text-orange-700' :
+                                    ($detectedPriority->name === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700')) }}">
+                                    {{ $detectedPriority->name }}
+                                </span>
+                                <span class="text-[10px] text-on-surface-variant italic">auto-detected</span>
+                            </div>
+                        @endif
+                    @endif
+
                     @error('selectedTypeId')
                         <p class="text-red-500 text-xs px-1">Please select a type.</p>
                     @enderror
                 </div>
 
                 {{-- Description --}}
-                <div class="flex flex-col gap-2">
-                    <label class="text-sm font-semibold text-on-surface-variant px-1">Description</label>
-                    <textarea wire:model="description"
-                              class="w-full bg-stone-50 border border-stone-200 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base placeholder:text-stone-400 resize-none outline-none transition"
-                              placeholder="Tell us more about your feedback..."
-                              rows="3"></textarea>
+                <div class="space-y-2">
+                    <label class="text-[14px] font-bold text-on-surface px-1 flex items-center gap-2">
+                        Describe your concern
+                        <span class="text-[11px] font-normal text-on-surface-variant">— Filipino o English</span>
+                    </label>
+
+                    <textarea wire:model.live.debounce.2000ms="description"
+                            class="w-full bg-stone-50 border border-stone-200 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base placeholder:text-stone-400 resize-none outline-none transition"
+                            placeholder="Halimbawa: May magnanakaw sa backyard namin, may basura na hindi nakolekta, nasira ang ilaw sa kalsada..."
+                            rows="4"></textarea>
+
+                    {{-- AI loading state --}}
+                    <div wire:loading wire:target="description"
+                        class="flex items-center gap-2 px-1 text-[12px] text-primary">
+                        <span class="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
+                        AI is analyzing your concern...
+                    </div>
+
+                    {{-- AI result badge --}}
+                    @if($aiResult && !$isAnalyzing ?? true)
+                        <div wire:loading.remove wire:target="description"
+                            class="flex flex-wrap items-start gap-2 px-1 py-2 bg-blue-50 border border-blue-100 rounded-xl">
+                            <span class="material-symbols-outlined text-blue-500 text-[16px] mt-0.5" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+                            <div class="flex-1 space-y-1">
+                                <p class="text-[12px] font-semibold text-primary">AI Classification</p>
+                                @if(!empty($aiResult['summary']))
+                                    <p class="text-[12px] text-on-surface-variant leading-tight">{{ $aiResult['summary'] }}</p>
+                                @endif
+                                <div class="flex flex-wrap gap-1.5 mt-1">
+                                    @if(!empty($aiResult['detected_priority']))
+                                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-full
+                                            {{ $aiResult['detected_priority'] === 'Emergency' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700' }}">
+                                            {{ $aiResult['detected_priority'] }}
+                                        </span>
+                                    @endif
+                                    @if(!empty($aiResult['detected_category']))
+                                        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">
+                                            {{ $aiResult['detected_category'] }}
+                                        </span>
+                                    @endif
+                                    @if(!empty($aiResult['is_high_risk']) && $aiResult['is_high_risk'])
+                                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600">
+                                            ⚠ High Risk
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     @error('description')
                         <p class="text-red-500 text-xs px-1">{{ $message }}</p>
                     @enderror
                 </div>
+                
+
+
 
                 {{-- Photo upload --}}
                 <div class="flex flex-col gap-2">
