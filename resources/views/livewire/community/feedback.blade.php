@@ -138,7 +138,7 @@
                     <label class="text-sm font-semibold text-on-surface-variant px-1">Description</label>
                     <textarea wire:model="description"
                               class="w-full bg-stone-50 border border-stone-200 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base placeholder:text-stone-400 resize-none outline-none transition"
-                              placeholder="Tell us more about the issue..."
+                              placeholder="Tell us more about your feedback..."
                               rows="3"></textarea>
                     @error('description')
                         <p class="text-red-500 text-xs px-1">{{ $message }}</p>
