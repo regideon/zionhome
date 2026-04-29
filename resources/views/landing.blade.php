@@ -45,7 +45,7 @@
                 <span class="inline-block px-3 py-1 mb-4 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-bold uppercase tracking-widest">
                     Cainta Greenland Smart Subdivision
                 </span>
-                <h1 class="text-[30px] font-semibold leading-tight tracking-tight text-on-background mb-4">
+                <h1 class="text-[36px] font-semibold leading-tight tracking-tight text-on-background mb-4">
                     Your Community,<br>In Your Pocket.
                 </h1>
                 <p class="text-[18px] leading-relaxed text-secondary mb-8">

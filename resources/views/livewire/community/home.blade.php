@@ -43,8 +43,8 @@
                             Verified Homeowner
                         </span>
                         <div class="text-white/60 text-[12px] uppercase tracking-widest text-right" style="font-weight: 700;">
-                            <span class="text-white font-mono text-[14px]">ZH-2024-{{ str_pad(auth()->user()->id, 4, '0', STR_PAD_LEFT) }}</span><br>
-                            ZionHome ID No.<br>
+                            <span class="text-white font-mono text-[14px]">ID#: ZH-2024-{{ str_pad(auth()->user()->id, 4, '0', STR_PAD_LEFT) }}</span><br>
+                            {{-- ZionHome ID No.<br> --}}
                             Member since 2021
                         </div>
                     </div>
@@ -161,7 +161,7 @@
                 <div class="flex flex-col gap-1">
                     <span class="bg-error text-on-error px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider w-fit">DUE SOON</span>
                     <p class="text-[14px] font-medium text-on-surface">May HOA dues</p>
-                    <p class="text-[20px] font-semibold leading-[1.4] text-error">₱2,500</p>
+                    <p class="text-[20px] font-semibold leading-[1.4] text-error">₱12,000</p>
                 </div>
                 <a href="{{ route('community.bills') }}"
                    class="w-full py-2 bg-error text-on-error rounded-lg text-[14px] font-medium flex items-center justify-center active:scale-95 transition-transform">

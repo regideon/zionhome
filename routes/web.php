@@ -7,9 +7,14 @@ use App\Livewire\Community\Requests;
 use App\Livewire\Community\Feedback;
 use App\Livewire\Community\Visitors;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Community\Bills\PayAssociationDue;
 
 Route::get('/', fn() => view('landing'));
 // Route::get('/', fn() => redirect('/app/login'));
+
+
+Route::get('/bills/dues/{associationDue}/pay', PayAssociationDue::class)->name('bills.dues.pay');
+
 
 Route::prefix('app')->name('community.')->group(function () {
     // Guest routes (handled by CommunityPanelProvider Filament login)

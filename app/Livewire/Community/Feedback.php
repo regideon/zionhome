@@ -20,6 +20,12 @@ class Feedback extends Component
     public $photo = null;
     public bool $showForm = false;
 
+    public function mount(): void
+    {
+        $this->selectedTypeId = FeedbackType::where('id', 1)->value('id');
+    }
+
+
     public function selectType(int $typeId): void
     {
         $this->selectedTypeId = ($this->selectedTypeId === $typeId) ? null : $typeId;
