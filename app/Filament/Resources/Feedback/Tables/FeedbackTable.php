@@ -38,9 +38,9 @@ class FeedbackTable
                     ->trueColor('danger')
                     ->falseColor('gray'),
 
-                TextColumn::make('description')
+                TextColumn::make('message')
                     ->searchable()
-                    ->limit(120)
+                    ->limit(90)
                     ->tooltip(fn($record) => $record->title),
 
                 TextColumn::make('type.name')
