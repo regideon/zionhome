@@ -68,13 +68,13 @@
                 {{-- 3 Phone Mockups --}}
                 <div class="relative flex justify-center items-end max-w-4xl mx-auto">
                     <div class="w-[320px] md:w-[420px] translate-y-10 -mr-10 z-10 rounded-[2.5rem] overflow-hidden border-[4px] border-slate-900 shadow-2xl flex-shrink-0">
-                        <img class="w-full block" alt="ZionHome App" src="/images/dummy/mobile-1.png"/>
+                        <img class="w-full block" alt="ZionHome App" src="/images/banners/mobile-2.png"/>
                     </div>
                     <div class="w-[320px] md:w-[420px] -mb-10 z-20 rounded-[2.5rem] overflow-hidden border-[4px] border-slate-900 shadow-[0_40px_80px_rgba(0,0,0,0.5)] flex-shrink-0">
-                        <img class="w-full block" alt="ZionHome App" src="/images/dummy/mobile-2.png"/>
+                        <img class="w-full block" alt="ZionHome App" src="/images/banners/mobile-1.png"/>
                     </div>
                     <div class="w-[320px] md:w-[420px] translate-y-10 -ml-10 z-10 rounded-[2.5rem] overflow-hidden border-[4px] border-slate-900 shadow-2xl flex-shrink-0">
-                        <img class="w-full block" alt="ZionHome App" src="/images/dummy/mobile-3.png"/>
+                        <img class="w-full block" alt="ZionHome App" src="/images/banners/mobile-3.png"/>
                     </div>
                 </div>
 
