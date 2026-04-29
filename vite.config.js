@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/css/filament/zpanel/theme.css',
                 'resources/js/app.js',
                 'resources/css/community.css',
+                
             ],
             refresh: true,
         }),
